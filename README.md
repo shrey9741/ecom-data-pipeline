@@ -49,8 +49,24 @@ instead of letting downstream stages run on partial data.
 ```bash
 pip install pandas faker
 python src/generate_data.py   # generates synthetic messy source data
-python src/pipeline.py        # runs the full pipeline
+python src/pipeline.py        # runs the full pipeline (linear orchestration)
 ```
+
+### Airflow variant
+
+`dags/ecom_pipeline_dag.py` wraps the same `ingest.py` / `transform_validate.py`
+functions in an Airflow DAG instead of the linear script — `ingest_batch`
+and `ingest_incremental` run in parallel, `transform_and_validate` depends
+on both, with 2 retries and a 5-minute retry delay per task. The business
+logic is identical; only the orchestration layer changes, which is the
+actual point of adopting Airflow over a cron'd script.
+
+```bash
+pip install apache-airflow
+# place dags/ under $AIRFLOW_HOME/dags, ensure src/ is on PYTHONPATH
+airflow dags trigger ecom_pipeline
+```
+
 
 ## Validation checks implemented
 
