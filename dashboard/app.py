@@ -7,9 +7,15 @@ This is deliberately NOT reading raw source files: the point is to show
 the dashboard as the business-facing layer sitting on top of a pipeline
 that already guarantees data quality, not a fresh ad-hoc analysis.
 
+On a fresh deploy (e.g. Streamlit Community Cloud) warehouse.db won't exist
+yet, since it's a generated artifact and gitignored -- so this bootstraps
+it automatically by running the generator + pipeline once on first load.
+
 Run: streamlit run dashboard/app.py
 """
 import sqlite3
+import subprocess
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -18,8 +24,23 @@ import streamlit as st
 
 BASE = Path(__file__).parent.parent
 DB_PATH = BASE / "warehouse.db"
+SRC = BASE / "src"
 
 st.set_page_config(page_title="E-Commerce Pipeline Dashboard", layout="wide")
+
+
+def _bootstrap_if_needed():
+    """First-run only: generate synthetic data and run the pipeline so
+    warehouse.db exists. Skipped entirely on subsequent runs/deploys where
+    the DB is already present."""
+    if DB_PATH.exists():
+        return
+    with st.spinner("First run — generating data and running the pipeline..."):
+        subprocess.run([sys.executable, str(SRC / "generate_data.py")], check=True, cwd=BASE)
+        subprocess.run([sys.executable, str(SRC / "pipeline.py")], check=True, cwd=BASE)
+
+
+_bootstrap_if_needed()
 
 
 @st.cache_data
