@@ -52,7 +52,22 @@ python src/generate_data.py   # generates synthetic messy source data
 python src/pipeline.py        # runs the full pipeline (linear orchestration)
 ```
 
-### Airflow variant
+### Dashboard
+
+`dashboard/app.py` is a Streamlit dashboard that reads directly from the
+validated `warehouse.db` output (`fact_orders`, `fact_returns`,
+`dim_products`, `dim_customers`) — the business-facing layer sitting on
+top of a pipeline that already guarantees data quality via the validation
+and quarantine steps above. It shows KPIs (total orders, revenue, AOV,
+return rate, quarantine rate), daily order volume, revenue by category,
+return reasons, order status breakdown, top/bottom products by revenue,
+and a breakdown of exactly why records were quarantined.
+
+```bash
+pip install streamlit plotly
+streamlit run dashboard/app.py
+```
+
 
 `dags/ecom_pipeline_dag.py` wraps the same `ingest.py` / `transform_validate.py`
 functions in an Airflow DAG instead of the linear script — `ingest_batch`
