@@ -12,7 +12,6 @@ yet, since it's a generated artifact and gitignored -- so this bootstraps
 it automatically by running the generator + pipeline once on first load.
 
 
-
 Run: streamlit run dashboard/app.py
 """
 import sqlite3
